@@ -1,0 +1,94 @@
+@page "/fetchdata"
+@inject HttpClient Http
+
+<h1>Covid-19 Latest Details</h1>
+
+
+@if (all == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>Cases</th>
+                <th>Deaths</th>
+                <th>Recovered</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var country in all.Countries)
+            {
+                <tr>
+                    <td>@country.Country (@country.CountryCode)</td>
+                    <td>@country.TotalConfirmed <p class="text-danger">(+ @country.NewConfirmed today)</p></td>
+                    <td>@country.TotalDeaths <p class="text-danger">(+ @country.NewDeaths today)</p></td>
+                    <td>@country.TotalRecovered <p class="text-danger">(+ @country.NewRecovered today)</p></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Root all;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string url = "https://api.covid19api.com/summary";
+        try{
+        using (var client = new HttpClient())
+            {
+                Uri uri = new Uri(string.Format(url, string.Empty));
+                HttpResponseMessage response = await client.GetAsync(uri);
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    all = JsonConvert.DeserializeObject<Root>(content);
+                }
+            }
+        }catch{
+            Console.WriteLine("Error");
+        }
+    }
+
+// Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse); 
+    public class Global    {
+        public int NewConfirmed { get; set; } 
+        public int TotalConfirmed { get; set; } 
+        public int NewDeaths { get; set; } 
+        public int TotalDeaths { get; set; } 
+        public int NewRecovered { get; set; } 
+        public int TotalRecovered { get; set; } 
+    }
+
+    public class Premium    {
+    }
+
+    public class Countrys    {
+        public string Country { get; set; } 
+        public string CountryCode { get; set; } 
+        public string Slug { get; set; } 
+        public int NewConfirmed { get; set; } 
+        public int TotalConfirmed { get; set; } 
+        public int NewDeaths { get; set; } 
+        public int TotalDeaths { get; set; } 
+        public int NewRecovered { get; set; } 
+        public int TotalRecovered { get; set; } 
+        public DateTime Date { get; set; } 
+        public Premium Premium { get; set; } 
+    }
+
+    public class Root    {
+        public string Message { get; set; } 
+        public Global Global { get; set; } 
+        public List<Countrys> Countries { get; set; } 
+        public DateTime Date { get; set; } 
+    }
+
+
+    
+}
